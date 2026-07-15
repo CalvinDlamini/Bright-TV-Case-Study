@@ -1,5 +1,7 @@
 -- Databricks notebook source
---------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+---Check The construction and content of the DATA
+--------------------------------------------------------------------------------
 select * from `exercise`.`bright_tv`.`bright_tv_dataset_user_profiles` limit 100;
 ---------------------------------------------------------------------------------
 Select distinct Gender
@@ -20,7 +22,9 @@ FROM exercise.bright_tv.bright_tv_dataset_user_profiles;
 ----------------------------------------------------------------------------------
 Select distinct Race
 from exercise.bright_tv.bright_tv_dataset_user_profiles;
-
+----------------------------------------------------------------------------------
+---Check and count the number of subscribers per ethnicity
+----------------------------------------------------------------------------------
 SELECT COUNT (DISTINCT userid) AS Subs,
 CASE
   WHEN Race = 'None' THEN 'Unknown'
@@ -50,41 +54,43 @@ SELECT MIN(AGE) AS min_age,
 MAX(Age) AS max_age,
 AVG (Age) AS avg_age
 from exercise.bright_tv.bright_tv_dataset_user_profiles
-
-SELECT
+----------------------------------------------------------------------------------
+--- Categorize the age into age groups
+----------------------------------------------------------------------------------
+SELECT age,
 CASE
   WHEN AGE = 0 THEN 'Infant'
-  WHEN AGE = BETWEEN 1 AND 12 THEN 'Kids'
-  WHEN AGE = BETWEEN 13 AND 17 THEN 'Youth'
-  WHEN AGE = BETWEEN 18 AND 35 THEN 'Young Adult'
-  WHEN AGE = BETWEEN 36 AND 50 THEN 'Adults'
+  WHEN AGE BETWEEN 1 AND 12 THEN 'Kids'
+  WHEN AGE BETWEEN 13 AND 17 THEN 'Youth'
+  WHEN AGE BETWEEN 18 AND 35 THEN 'Young Adult'
+  WHEN AGE BETWEEN 36 AND 50 THEN 'Adults'
   WHEN AGE > 50 AND AGE<=60 THEN 'Elder'
   WHEN AGE > 60 THEN 'Pensioner'
 END AS Age_Group
 FROM exercise.bright_tv.bright_tv_dataset_user_profiles;
------------------------------------------------------------------------------------------------------
-Class Code 13/07/2026
------------------------------------------------------------------------------------------------------
---------------------------------------------------
+
+-----------------------------------------------------------------------------------
 -- Checking all the columns in the table viewrship
---------------------------------------------------
+-----------------------------------------------------------------------------------
 SELECT *
 FROM exercise.bright_tv.bright_tv_dataset_viewership;
---------------------------------------------------
--- Checking if there is any row where in the column userid0 is empty
---------------------------------------------------
+-----------------------------------------------------------------------------------
+--- Checking if there is any row where in the column userid0 is empty
+-----------------------------------------------------------------------------------
 SELECT *
 FROM exercise.bright_tv.bright_tv_dataset_viewership
 WHERE UserID0 IS NULL 
     OR userid4 IS NULL;
-------------------------------------------------------
+-----------------------------------------------------------------------------------
+--- Check Userid0 and userid4 are not equal
+-----------------------------------------------------------------------------------
 SELECT *
 FROM exercise.bright_tv.bright_tv_dataset_viewership
 WHERE userid0 <> userid4;
 
-----------------------------------------------------------
+----------------------------------------------------------------------------------
 -- Checking for duplicates
-----------------------------------------------------------
+----------------------------------------------------------------------------------
 SELECT COUNT(*),
        UserID0, RecordDate2
 FROM exercise.bright_tv.bright_tv_dataset_viewership
@@ -101,11 +107,31 @@ GROUP BY
     RecordDate2
 HAVING COUNT(*) > 1
 ORDER BY duplicate_count DESC;
-----------------------------------------
+----------------------------------------------------------------------------------
+---Sorting out the date,time and duration
+----------------------------------------------------------------------------------
 SELECT UserID0,
        TO_DATE(RecordDate2) AS watch_date,
        date_format(RecordDate2, 'HH:mm:ss') AS watch_time,
-       date_format(Duration 2, 'HH:mm:ss') AS duration,
+       date_format(`Duration 2`, 'HH:mm:ss') AS duration,
         Channel2
 FROM exercise.bright_tv.bright_tv_dataset_viewership
 WHERE userid0=810044;
+--------------------------------------------------------------------------------------------
+---Remove duplicates
+--------------------------------------------------------------------------------------------
+WITH ranked_records AS (
+    SELECT *,
+  ROW_NUMBER() OVER (
+  PARTITION BY
+  UserID0,
+  TO_DATE(RecordDate2),
+  date_format(RecordDate2, 'HH:mm:ss'),
+  date_format(`Duration 2`, 'HH:mm:ss'),
+  Channel2
+  ORDER BY RecordDate2) AS row_num
+  FROM exercise.bright_tv.bright_tv_dataset_viewership
+)
+SELECT * EXCEPT (row_num)
+FROM ranked_records
+WHERE row_num = 1;
