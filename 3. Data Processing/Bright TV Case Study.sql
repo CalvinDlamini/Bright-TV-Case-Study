@@ -108,7 +108,7 @@ GROUP BY
 HAVING COUNT(*) > 1
 ORDER BY duplicate_count DESC;
 ----------------------------------------------------------------------------------
----Sorting out the date,time and duration
+---Sorting out the date,time and duration for userid0 (810044)
 ----------------------------------------------------------------------------------
 SELECT UserID0,
        TO_DATE(RecordDate2) AS watch_date,
@@ -135,3 +135,47 @@ WITH ranked_records AS (
 SELECT * EXCEPT (row_num)
 FROM ranked_records
 WHERE row_num = 1;
+
+-------------------------------------------------------------------------------
+---BrightTV_Code Final
+-------------------------------------------------------------------------------
+SELECT userid,
+CASE
+  WHEN gender = 'None' THEN 'Unknown'
+  WHEN gender = '  ' THEN 'Unknown'
+  WHEN gender IS NULL THEN 'Unknown'
+  ELSE gender
+END AS SEX,
+
+CASE
+  WHEN Race = 'None' THEN 'Unknown'
+  WHEN Race = 'other' THEN 'Unknown'
+  WHEN Race = '    ' THEN 'Unknown'
+  WHEN Race IS NULL THEN 'Unknown'
+  ELSE Race
+END AS enthnicity,
+
+CASE
+  WHEN Province = 'None' THEN 'Unknown'
+  WHEN Province = 'other' THEN 'Unknown'
+  WHEN Province = '    ' THEN 'Unknown'
+  WHEN Province IS NULL THEN 'Unknown'
+  ELSE Province
+END AS Location,
+
+age,
+
+CASE
+  WHEN AGE = 0 THEN 'Infant'
+  WHEN AGE BETWEEN 1 AND 12 THEN 'Kids'
+  WHEN AGE BETWEEN 13 AND 17 THEN 'Youth'
+  WHEN AGE BETWEEN 18 AND 35 THEN 'Young Adult'
+  WHEN AGE BETWEEN 36 AND 50 THEN 'Adults'
+  WHEN AGE > 50 AND AGE<=60 THEN 'Elder'
+  WHEN AGE > 60 THEN 'Pensioner'
+END AS Age_Group
+FROM exercise.bright_tv.bright_tv_dataset_user_profiles;
+
+
+
+
